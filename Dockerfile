@@ -22,5 +22,5 @@ RUN echo '#!/bin/sh\nexec ok "$@"' > /docker-entrypoint.sh && \
 # Expose the port (OpenKnowledge uses 39847 by default)
 EXPOSE 39847
 
-# Start OpenKnowledge
-CMD ["ok", "start", "--host", "0.0.0.0"]
+# Start OpenKnowledge UI
+CMD ["ok", "ui", "-H", "0.0.0.0"]
