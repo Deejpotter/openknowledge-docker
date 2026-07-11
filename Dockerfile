@@ -13,7 +13,7 @@ WORKDIR /app
 RUN npm install -g @inkeep/open-knowledge@latest
 
 # Initialize a default OpenKnowledge project
-RUN ok init --yes
+RUN ok init
 
 # Create docker-entrypoint.sh at root (Coolify expects this)
 RUN echo '#!/bin/sh\nexec ok "$@"' > /docker-entrypoint.sh && \
@@ -23,4 +23,4 @@ RUN echo '#!/bin/sh\nexec ok "$@"' > /docker-entrypoint.sh && \
 EXPOSE 39847
 
 # Start OpenKnowledge
-CMD ["ok", "start", "-H", "0.0.0.0"]
+CMD ["ok", "start", "--host", "0.0.0.0"]
