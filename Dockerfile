@@ -12,8 +12,8 @@ WORKDIR /app
 # Install OpenKnowledge globally (latest version)
 RUN npm install -g @inkeep/open-knowledge@latest
 
-# Create a default knowledge base
-RUN mkdir -p /app/knowledge-base
+# Initialize a default OpenKnowledge project
+RUN ok init --yes
 
 # Create docker-entrypoint.sh at root (Coolify expects this)
 RUN echo '#!/bin/sh\nexec ok "$@"' > /docker-entrypoint.sh && \
