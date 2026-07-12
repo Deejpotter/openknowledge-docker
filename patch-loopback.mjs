@@ -23,35 +23,22 @@ if (content.includes(oldLoopbackReq)) {
   console.log('Patched isLoopbackRequest');
 }
 
-// 3. Patch isAllowedApiOrigin - use a simpler approach: replace the entire return statement
-// Original: return t===`localhost`||t===`::1`||t===`[::1]`||/^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(t)
-// We want:  return t===`localhost`||t===`::1`||t===`[::1]`||t===`openknowledge.deejpatchter.com`||/^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(t)
-
-// Find and replace the specific return statement in isAllowedApiOrigin
+// 3. Patch isAllowedApiOrigin - accept our domain
 const oldReturn = 'return t===`localhost`||t===`::1`||t===`[::1]`||/^127\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}$/.test(t)';
 const newReturn = 'return t===`localhost`||t===`::1`||t===`[::1]`||t===`openknowledge.deejpotter.com`||/^127\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}$/.test(t)';
-
 if (content.includes(oldReturn)) {
   content = content.replace(oldReturn, newReturn);
   changes++;
-  console.log('Patched isAllowedApiOrigin (return statement)');
-} else {
-  // Try with different escaping
-  const oldReturn2 = "return t===`localhost`||t===`::1`||t===`[::1]`||/^127\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}$/.test(t)";
-  const newReturn2 = "return t===`localhost`||t===`::1`||t===`[::1]`||t===`openknowledge.deejpotter.com`||/^127\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}$/.test(t)";
-  if (content.includes(oldReturn2)) {
-    content = content.replace(oldReturn2, newReturn2);
-    changes++;
-    console.log('Patched isAllowedApiOrigin (return statement v2)');
-  } else {
-    console.log('Could not find isAllowedApiOrigin return statement');
-    // Debug: show what we're looking for
-    const idx = content.indexOf('isAllowedApiOrigin');
-    if (idx !== -1) {
-      const context = content.substring(Math.max(0, idx - 200), Math.min(content.length, idx + 500));
-      console.log('Context:', context);
-    }
-  }
+  console.log('Patched isAllowedApiOrigin');
+}
+
+// 4. Patch hasValidLocalOpOrigin - accept our domain
+const oldLocalOp = 'return e===`127.0.0.1`||e===`localhost`||e===`[::1]`||e===`::1`}catch{return!1}';
+const newLocalOp = 'return e===`127.0.0.1`||e===`localhost`||e===`[::1]`||e===`::1`||e===`openknowledge.deejpotter.com`}catch{return!1}';
+if (content.includes(oldLocalOp)) {
+  content = content.replace(oldLocalOp, newLocalOp);
+  changes++;
+  console.log('Patched hasValidLocalOpOrigin');
 }
 
 if (changes > 0) {
