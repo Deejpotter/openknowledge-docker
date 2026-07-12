@@ -1,26 +1,21 @@
 FROM node:22-slim
 
-# Install git and dependencies
-RUN apt-get update && apt-get install -y \
-    git \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y git curl && rm -rf /var/lib/apt/lists/*
 
-# Create app directory
 WORKDIR /app
 
-# Install OpenKnowledge globally (latest version)
 RUN npm install -g @inkeep/open-knowledge@latest
 
-# Initialize a default OpenKnowledge project
 RUN ok init
 
-# Create docker-entrypoint.sh at root (Coolify expects this)
-RUN echo '#!/bin/sh\nexec ok "$@"' > /docker-entrypoint.sh && \
+COPY patch-loopback.mjs /tmp/patch-loopback.mjs
+
+RUN echo '#!/bin/sh' > /docker-entrypoint.sh && \
+    echo 'node /tmp/patch-loopback.mjs' >> /docker-entrypoint.sh && \
+    echo 'exec ok start -H 0.0.0.0 -p ${PORT:-39847} --react-shell-dist-dir /usr/local/lib/node_modules/@inkeep/open-knowledge/dist/public' >> /docker-entrypoint.sh && \
     chmod +x /docker-entrypoint.sh
 
-# Expose the port (OpenKnowledge uses 39847 by default)
+ENV PORT=39847
 EXPOSE 39847
 
-# Start OpenKnowledge with both collab server and React UI
-CMD ["ok", "start", "-H", "0.0.0.0", "--react-shell-dist-dir", "/usr/local/lib/node_modules/@inkeep/open-knowledge/dist/public"]
+ENTRYPOINT ["/docker-entrypoint.sh"]
