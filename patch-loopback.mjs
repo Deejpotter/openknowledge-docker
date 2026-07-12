@@ -23,35 +23,40 @@ if (content.includes(oldLoopbackReq)) {
   console.log('Patched isLoopbackRequest');
 }
 
-// 3. Patch isAllowedApiOrigin - accept our domain
-// The function uses template literals and has a regex test at the end
-const oldOrigin = 't===`localhost`||t===`::1`||t===`[::1]`';
-const newOrigin = 't===`localhost`||t===`::1`||t===`[::1]`||t===`openknowledge.deejpotter.com`';
-if (content.includes(oldOrigin)) {
-  content = content.replace(oldOrigin, newOrigin);
-  changes++;
-  console.log('Patched isAllowedApiOrigin (hostname check)');
-}
+// 3. Patch isAllowedApiOrigin - use a simpler approach: replace the entire return statement
+// Original: return t===`localhost`||t===`::1`||t===`[::1]`||/^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(t)
+// We want:  return t===`localhost`||t===`::1`||t===`[::1]`||t===`openknowledge.deejpatchter.com`||/^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(t)
 
-// Also try with the full regex pattern
-const oldOriginRegex = '/^127\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}$/';
-if (content.includes(oldOriginRegex)) {
-  // Already has the regex, just need to add our domain
-  content = content.replace(oldOriginRegex, '/^127\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}$/||t===`openknowledge.deejpotter.com`');
+// Find and replace the specific return statement in isAllowedApiOrigin
+const oldReturn = 'return t===`localhost`||t===`::1`||t===`[::1]`||/^127\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}$/.test(t)';
+const newReturn = 'return t===`localhost`||t===`::1`||t===`[::1]`||t===`openknowledge.deejpotter.com`||/^127\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}$/.test(t)';
+
+if (content.includes(oldReturn)) {
+  content = content.replace(oldReturn, newReturn);
   changes++;
-  console.log('Patched isAllowedApiOrigin (regex check)');
+  console.log('Patched isAllowedApiOrigin (return statement)');
+} else {
+  // Try with different escaping
+  const oldReturn2 = "return t===`localhost`||t===`::1`||t===`[::1]`||/^127\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}$/.test(t)";
+  const newReturn2 = "return t===`localhost`||t===`::1`||t===`[::1]`||t===`openknowledge.deejpotter.com`||/^127\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}$/.test(t)";
+  if (content.includes(oldReturn2)) {
+    content = content.replace(oldReturn2, newReturn2);
+    changes++;
+    console.log('Patched isAllowedApiOrigin (return statement v2)');
+  } else {
+    console.log('Could not find isAllowedApiOrigin return statement');
+    // Debug: show what we're looking for
+    const idx = content.indexOf('isAllowedApiOrigin');
+    if (idx !== -1) {
+      const context = content.substring(Math.max(0, idx - 200), Math.min(content.length, idx + 500));
+      console.log('Context:', context);
+    }
+  }
 }
 
 if (changes > 0) {
   writeFileSync(DIST_FILE, content);
   console.log(`Successfully patched ${changes} functions`);
 } else {
-  console.log('No patterns matched - checking what patterns exist...');
-  // Debug: show what the patterns actually look like
-  const idx = content.indexOf('isAllowedApiOrigin');
-  if (idx !== -1) {
-    const start = Math.max(0, idx - 100);
-    const end = Math.min(content.length, idx + 500);
-    console.log('Context around isAllowedApiOrigin:', content.substring(start, end));
-  }
+  console.log('No patterns matched');
 }
